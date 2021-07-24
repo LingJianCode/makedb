@@ -35,6 +35,7 @@ func Resp(reader *bufio.Reader) ([]string, error) {
 }
 
 func handleError(reader *bufio.Reader) string {
+	//利用\n来做标识，以后需要对\r做验证
 	msg, _ := reader.ReadBytes('\n')
 	//fmt.Println(string(msg[:len(msg)-2]))
 	return string(msg[:len(msg)-2])

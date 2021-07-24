@@ -28,6 +28,7 @@ func printRes(dst io.Writer, src io.Reader) {
 		ress, err := makedb.Resp(reader)
 		if err != nil {
 			log.Println(err)
+			//避免由于服务端关闭服务导致客户端goroutine无法结束
 			break
 		}
 		for _, res := range ress {

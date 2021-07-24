@@ -13,6 +13,7 @@ import "makedb"
 var db = makedb.NewDbms()
 
 func main() {
+	//打印日志在文件中的行数
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	listener, err := net.Listen("tcp", "localhost:4444")
 	fmt.Println("start...")
@@ -41,8 +42,10 @@ func handleConn(conn net.Conn) {
 				break
 			}
 			log.Println(err)
+			//避免由于客户端关闭导致服务端goroutine无法结束
 			break
 		}
+		//避免在客户端发送数据前从连接取数据，在客户端发送数据前读取数据会导致读取的数据为nil
 		if handle == nil {
 			continue
 		}
