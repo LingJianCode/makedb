@@ -25,12 +25,14 @@ func main() {
 func printRes(dst io.Writer, src io.Reader) {
 	reader := bufio.NewReader(src)
 	for {
-		res, err := makedb.Resp(reader)
+		ress, err := makedb.Resp(reader)
 		if err != nil {
 			log.Println(err)
 			break
 		}
-		io.WriteString(dst, res[0])
+		for _, res := range ress {
+			io.WriteString(dst, res)
+		}
 	}
 }
 
