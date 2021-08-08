@@ -94,7 +94,6 @@ func merge(fd *os.File) {
 			//更新offset
 			pos += int64(n)
 			removeFdMap[v.FileId.Name()] = v.FileId
-
 		}
 	}
 
