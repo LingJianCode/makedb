@@ -18,7 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("connected...")
-	go printRes(os.Stdout, conn)
+	//go printRes(os.Stdout, conn)
 	sendCommand(conn)
 }
 
@@ -45,7 +45,7 @@ func sendCommand(conn net.Conn) {
 	for true {
 		count = 0
 		op, key, value, msg = "", "", "", ""
-		//fmt.Print(">")
+		fmt.Print(">")
 		fmt.Scanf("%s %s %s", &op, &key, &value)
 		if op == "exit" {
 			break
@@ -66,7 +66,16 @@ func sendCommand(conn net.Conn) {
 			msg += value + "\r\n"
 		}
 		cmd := fmt.Sprintf("*%d\r\n%s", count, msg)
-		//fmt.Println(cmd)
+		fmt.Println(cmd)
 		io.WriteString(conn, cmd)
+
+		reader := bufio.NewReader(conn)
+		ress, err := makedb.Resp(reader)
+		if err != nil {
+			log.Println(err)
+		}
+		for _, res := range ress {
+			io.WriteString(os.Stdout, res+"\n")
+		}
 	}
 }

@@ -9,51 +9,52 @@ import (
 
 func Resp(reader *bufio.Reader) ([]string, error) {
 	flag, err := reader.ReadByte()
-	var res []string
 	if err != nil {
 		return nil, err
 	}
+	var res []string
 	switch flag {
 	case '-':
-		c := handleError(reader)
+		c := analysisError(reader)
 		res = append(res, c)
 	case '+':
-		c := handleSimpleString(reader)
+		c := analysisSimpleString(reader)
 		res = append(res, c)
 	case ':':
-		c := handleInt(reader)
+		c := analysisInt(reader)
 		res = append(res, c)
 	case '$':
-		c, _ := handleString(reader)
+		c, _ := analysisString(reader)
 		res = append(res, c)
 	case '*':
-		res = handleArray(reader)
+		res = analysisArray(reader)
 	default:
 		return nil, errors.New("-unkown handle")
 	}
 	return res, nil
 }
 
-func handleError(reader *bufio.Reader) string {
+func analysisError(reader *bufio.Reader) string {
 	//利用\n来做标识，以后需要对\r做验证
 	msg, _ := reader.ReadBytes('\n')
 	//fmt.Println(string(msg[:len(msg)-2]))
 	return string(msg[:len(msg)-2])
 }
 
-func handleSimpleString(reader *bufio.Reader) string {
+func analysisSimpleString(reader *bufio.Reader) string {
 	msg, _ := reader.ReadBytes('\n')
 	//fmt.Println(string(msg[:len(msg)-2]))
 	return string(msg[:len(msg)-2])
 }
 
-func handleInt(reader *bufio.Reader) string {
+func analysisInt(reader *bufio.Reader) string {
 	msg, _ := reader.ReadBytes('\n')
 	return string(msg[:len(msg)-2])
 }
 
-func handleString(reader *bufio.Reader) (string, error) {
+func analysisString(reader *bufio.Reader) (string, error) {
 	msg, _ := reader.ReadBytes('\n')
+	//len-2,2 = len("\r\n")，去掉\r\n
 	l, _ := strconv.Atoi(string(msg[:len(msg)-2]))
 	//fmt.Println(reflect.TypeOf(len))
 	res := make([]byte, l+2)
@@ -66,7 +67,7 @@ func handleString(reader *bufio.Reader) (string, error) {
 	return string(res[:len(res)-2]), nil
 }
 
-func handleArray(reader *bufio.Reader) []string {
+func analysisArray(reader *bufio.Reader) []string {
 	msg, _ := reader.ReadBytes('\n')
 	l, _ := strconv.Atoi(string(msg[:len(msg)-2]))
 	var res []string
@@ -74,13 +75,13 @@ func handleArray(reader *bufio.Reader) []string {
 		flag, _ := reader.ReadByte()
 		switch flag {
 		case '-':
-			handleError(reader)
+			analysisError(reader)
 		case '+':
-			handleSimpleString(reader)
+			analysisSimpleString(reader)
 		case ':':
-			handleInt(reader)
+			analysisInt(reader)
 		case '$':
-			x, _ := handleString(reader)
+			x, _ := analysisString(reader)
 			res = append(res, x)
 		case '*':
 			//handleArray(reader)
@@ -89,4 +90,24 @@ func handleArray(reader *bufio.Reader) []string {
 	}
 	//fmt.Println(res)
 	return res
+}
+
+func RespSendError(e string) {
+
+}
+
+func RespSendSimpleString(ss string) {
+
+}
+
+func RespSendInt(i int) {
+
+}
+
+func RespSendString(s string) {
+
+}
+
+func RespSendArray(sa []string) {
+
 }
