@@ -106,6 +106,10 @@ func get(key string) string {
 func set(fd *os.File, key string, value string) error {
 	entry := makedb.NewEntryAndCalc(key, value)
 	fi, _ := fd.Stat()
+	//如果文件大于等于1KB则进行轮替
+	if fi.Size() >= 1024 {
+		rotation(&fd)
+	}
 	//写入文件是多加一个分隔符\n，为了扫描文件时进行读取数据，然后进行反序列化
 	n, err := fd.Write(append(entry.Marshal(), makedb.Separator))
 	if err != nil {

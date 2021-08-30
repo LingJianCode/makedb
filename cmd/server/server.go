@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/robfig/cron"
 	"io"
 	"log"
 	"net"
@@ -22,6 +23,14 @@ func main() {
 	if fd == nil {
 		fd, _ = os.OpenFile(makedb.ActiveFilePath, os.O_APPEND|os.O_CREATE, 0644)
 	}
+
+	//定时merge
+	c := cron.New()
+	spec := "0 */10 * * * ?"
+	c.AddFunc(spec, func() {
+		merge(fd)
+	})
+	c.Start()
 
 	listener, err := net.Listen("tcp", "localhost:4444")
 	fmt.Println("start...")
