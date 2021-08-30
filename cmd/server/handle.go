@@ -112,6 +112,7 @@ func set(fd *os.File, key string, value string) error {
 		log.Fatal(err)
 		return err
 	}
+
 	//实时刷盘
 	fd.Sync()
 	keydir[key] = makedb.ValueIndex{
