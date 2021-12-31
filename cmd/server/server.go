@@ -32,7 +32,7 @@ func main() {
 	})
 	c.Start()
 
-	listener, err := net.Listen("tcp", "localhost:4444")
+	listener, err := net.Listen("tcp", "0.0.0.0:4444")
 	fmt.Println("start...")
 	defer listener.Close()
 	if err != nil {
@@ -83,7 +83,7 @@ func handleConn(conn net.Conn, fd *os.File) {
 		case "SET":
 			key := handle[1]
 			value := handle[2]
-			err := set(fd, key, value)
+			err := set(&fd, key, value)
 			if err != nil {
 				io.WriteString(conn, "-set "+key+" failed\r\n")
 			} else {
@@ -96,8 +96,13 @@ func handleConn(conn net.Conn, fd *os.File) {
 		case "EXIT":
 			fmt.Println("exit...")
 			break
+		case "COMMAND":
+			io.WriteString(conn, "+OK\r\n")
+			break
 		default:
 			fmt.Println("plase input set/get/del xxx or exit.")
+			io.WriteString(conn, "+OK\r\n")
+			break
 		}
 	}
 }

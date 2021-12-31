@@ -13,10 +13,10 @@ import (
 func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	conn, err := net.Dial("tcp", "localhost:4444")
-	defer conn.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer conn.Close()
 	fmt.Println("connected...")
 	//go printRes(os.Stdout, conn)
 	sendCommand(conn)

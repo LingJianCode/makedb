@@ -6,42 +6,66 @@ import (
 	"io"
 	"log"
 	"net"
-	"os"
 )
 
 type Client struct {
-	op    string
-	key   string
-	value string
+	conn net.Conn
 }
 
-func (c *Client) sendCmd(conn net.Conn) []string {
-	defer conn.Close()
+func NewClient(host string, port string) Client {
+	conn, _ := net.Dial("tcp", fmt.Sprintf("%s:%s", host, port))
+	return Client{conn: conn}
+}
+
+func (c *Client) Set(key string, value string) []string {
 	var msg string
-	var count int
-	count = 0
-	if c.op == "exit" {
-		os.Exit(0)
-	}
-	if c.op != "" {
-		count++
-		msg += fmt.Sprintf("$%d\r\n", len(c.op))
-		msg += c.op + "\r\n"
-	}
-	if c.key != "" {
-		count++
-		msg += fmt.Sprintf("$%d\r\n", len(c.key))
-		msg += c.key + "\r\n"
-	}
-	if c.value != "" {
-		count++
-		msg += fmt.Sprintf("$%d\r\n", len(c.value))
-		msg += c.value + "\r\n"
-	}
+	count := 3
+	msg += "$3\r\n"
+	msg += "SET" + "\r\n"
+	msg += fmt.Sprintf("$%d\r\n", len(key))
+	msg += key + "\r\n"
+	msg += fmt.Sprintf("$%d\r\n", len(value))
+	msg += value + "\r\n"
 	cmd := fmt.Sprintf("*%d\r\n%s", count, msg)
 	//log.Println(cmd)
-	io.WriteString(conn, cmd)
-	reader := bufio.NewReader(conn)
+	io.WriteString(c.conn, cmd)
+	reader := bufio.NewReader(c.conn)
+	ress, err := Resp(reader)
+	if err != nil {
+		log.Println(err)
+	}
+	return ress
+}
+
+func (c *Client) Get(key string) []string {
+	var msg string
+	count := 2
+	msg += "$3\r\n"
+	msg += "GET" + "\r\n"
+	msg += fmt.Sprintf("$%d\r\n", len(key))
+	msg += key + "\r\n"
+	cmd := fmt.Sprintf("*%d\r\n%s", count, msg)
+	//log.Println(cmd)
+	io.WriteString(c.conn, cmd)
+	reader := bufio.NewReader(c.conn)
+	ress, err := Resp(reader)
+	if err != nil {
+		log.Println(err)
+	}
+	return ress
+}
+
+func (c *Client) Del(key string) []string {
+	var msg string
+	count := 2
+	msg += "$3\r\n"
+	msg += "DEL" + "\r\n"
+	msg += fmt.Sprintf("$%d\r\n", len(key))
+	msg += key + "\r\n"
+	cmd := fmt.Sprintf("*%d\r\n%s", count, msg)
+	//log.Println(cmd)
+	io.WriteString(c.conn, cmd)
+	reader := bufio.NewReader(c.conn)
 	ress, err := Resp(reader)
 	if err != nil {
 		log.Println(err)

@@ -5,8 +5,12 @@ import (
 	"log"
 	"makedb"
 	"os"
+	"sync"
 	"time"
 )
+
+var RotationMutex sync.Mutex
+var WriteFileMutex sync.Mutex
 
 func merge(fd *os.File) {
 	mergeFileName := fmt.Sprintf(makedb.MergeFilePreFix+".%d", time.Now().Unix())
@@ -65,25 +69,30 @@ func merge(fd *os.File) {
 }
 
 func rotation(fd **os.File) {
+	fmt.Println("rotation")
+	RotationMutex.Lock()
+	defer RotationMutex.Unlock()
 	(*fd).Close()
-	newFileName := fmt.Sprintf(makedb.StoragePath+"/"+makedb.StorageFilePreFix+".%d", time.Now().Unix())
+	tmpFd := *fd
+	newFileName := fmt.Sprintf(makedb.StoragePath+"/"+makedb.StorageFilePreFix+".%d", time.Now().UnixNano())
 	err := os.Rename(makedb.ActiveFilePath, newFileName)
 	if err != nil {
 		log.Println(err)
 	}
-	oldFd, _ := os.Open(newFileName)
+	*fd, _ = os.OpenFile(makedb.ActiveFilePath, os.O_APPEND|os.O_CREATE, 0644)
+	newFd, _ := os.Open(newFileName)
 	for k, v := range keydir {
 		//fmt.Println("rotation", v.FileId, fd)
-		if v.FileId == *fd {
+		if v.FileId == tmpFd {
 			keydir[k] = makedb.ValueIndex{
-				FileId:    oldFd,
+				FileId:    newFd,
 				ValueSz:   v.ValueSz,
 				ValuePos:  v.ValuePos,
 				Timestamp: v.Timestamp,
 			}
 		}
 	}
-	*fd, _ = os.OpenFile(makedb.ActiveFilePath, os.O_APPEND|os.O_CREATE, 0644)
+
 }
 
 func get(key string) string {
@@ -103,24 +112,29 @@ func get(key string) string {
 	return e.Value
 }
 
-func set(fd *os.File, key string, value string) error {
+func set(fd **os.File, key string, value string) error {
 	entry := makedb.NewEntryAndCalc(key, value)
-	fi, _ := fd.Stat()
+	WriteFileMutex.Lock()
+	defer WriteFileMutex.Unlock()
+	fi, fderr := (*fd).Stat()
+	if fderr != nil {
+		log.Println(fderr)
+		return fderr
+	}
 	//如果文件大于等于1KB则进行轮替
 	if fi.Size() >= 1024 {
-		rotation(&fd)
+		rotation(fd)
 	}
 	//写入文件是多加一个分隔符\n，为了扫描文件时进行读取数据，然后进行反序列化
-	n, err := fd.Write(append(entry.Marshal(), makedb.Separator))
+	n, err := (*fd).Write(append(entry.Marshal(), makedb.Separator))
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
-
 	//实时刷盘
-	fd.Sync()
+	//*fd.Sync()
 	keydir[key] = makedb.ValueIndex{
-		FileId: fd,
+		FileId: *fd,
 		//去掉Separator长度
 		ValueSz:   int64(n - 1),
 		ValuePos:  fi.Size(),

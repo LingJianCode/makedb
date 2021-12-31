@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"hash/crc32"
+	"io"
+
 	//"github.com/vmihailenco/msgpack"
 	"log"
 	"os"
@@ -85,9 +88,17 @@ func TestData_Marshal(t *testing.T) {
 	//fi2, _ := fd.Stat()
 	fmt.Println("write After:", fi.Size())
 	fd.Close()
+
+	crc := crc32.ChecksumIEEE([]byte("e.Meta.Value"))
+	fmt.Println(crc)
+
+	i := crc32.NewIEEE()
+	io.WriteString(i, "e.Meta.Value")
+	fmt.Println(i.Sum32())
 }
 
 func TestData_Unmarshal(t *testing.T) {
+
 	a := NewEntry()
 	fd, _ := os.Open("./data/store.001")
 
