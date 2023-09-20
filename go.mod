@@ -1,5 +1,3 @@
-module makedb
+module study
 
-go 1.16
-
-require github.com/robfig/cron v1.2.0
+go 1.21.1

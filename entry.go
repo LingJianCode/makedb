@@ -1,81 +1,39 @@
-package makedb
+package study
 
-import (
-	"bytes"
-	"encoding/gob"
-	"fmt"
-	"hash/crc32"
-	"io"
-	"log"
-	"time"
-)
+import "encoding/binary"
 
 type Entry struct {
-	Crc       uint32
-	Timestamp int64
-	Ksz       int64
-	ValueSz   int64
-	Key       string
-	Value     string
-	flag      int
+	KeySize   uint32
+	ValueSize uint32
+	Key       []byte
+	Value     []byte
 }
 
-func NewEntryAndCalc(key string, value string) Entry {
-	data := Entry{
-		Timestamp: time.Now().Unix(),
+func NewEntry(key, value []byte) *Entry {
+	return &Entry{
+		KeySize:   uint32(len(key)),
+		ValueSize: uint32(len(value)),
 		Key:       key,
 		Value:     value,
-		flag:      0,
 	}
-	data.calc()
-	return data
 }
 
-func NewEntry() Entry {
-	return Entry{}
+func (e *Entry) getSize() int64 {
+	return int64(e.KeySize + e.ValueSize + 8)
 }
 
-func (e *Entry) calcCrc() {
-	i := crc32.NewIEEE()
-	str := fmt.Sprintf("%d%d%d%s%s", e.Timestamp, e.Ksz, e.ValueSz, e.Key, e.Value)
-	io.WriteString(i, str)
-	e.Crc = i.Sum32()
-	//fmt.Println(i.Sum32())
+func (e *Entry) Encode() ([]byte, error) {
+	buf := make([]byte, e.getSize())
+	binary.BigEndian.PutUint32(buf[0:4], e.KeySize)
+	binary.BigEndian.PutUint32(buf[4:8], e.ValueSize)
+	copy(buf[8:8+e.KeySize], e.Key)
+	copy(buf[8+e.KeySize:], e.Value)
+	return buf, nil
 }
 
-func (e *Entry) calcKsz() {
-	e.Ksz = int64(len(e.Key))
-	//fmt.Println(d.Ksz)
-}
-
-func (e *Entry) calcValueSz() {
-	e.ValueSz = int64(len(e.Value))
-	//fmt.Println(d.ValueSz)
-}
-
-func (e *Entry) calc() {
-	e.calcKsz()
-	e.calcValueSz()
-	e.calcCrc()
-}
-
-//采用gob序列化
-func (e *Entry) Marshal() []byte {
-	buf := new(bytes.Buffer)
-	enc := gob.NewEncoder(buf)
-	err := enc.Encode(e)
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-	return buf.Bytes()
-}
-
-//采用gob反序列化
-func (e *Entry) Unmarshal(i []byte) {
-	dec := gob.NewDecoder(bytes.NewBuffer(i))
-	err := dec.Decode(&e)
-	if err != nil {
-		log.Fatal(err)
-	}
+func Decode(buf []byte) (*Entry, error) {
+	e := Entry{}
+	e.KeySize = binary.BigEndian.Uint32(buf[0:4])
+	e.ValueSize = binary.BigEndian.Uint32(buf[4:8])
+	return &e, nil
 }
