@@ -1,11 +1,19 @@
-package study
+package makedb
 
-var keydir map[string]int64
-
-func get(key string) ([]byte, error) {
-	return nil, nil
+type KeydirElement struct {
+	DataFile *DataFile
+	// ValueSize is entry's length in disk.
+	ValueSize uint32
+	// ValuePos is entry's offset in file.
+	ValuePos int64
+	Tstamp   uint64
 }
 
-func put(key string, value []byte) error {
-	return nil
+func NewKeydirElement(df *DataFile, vp int64, vs uint32, ts uint64) *KeydirElement {
+	return &KeydirElement{
+		DataFile:  df,
+		ValueSize: vs,
+		ValuePos:  vp,
+		Tstamp:    ts,
+	}
 }
