@@ -3,6 +3,7 @@ package makedb
 import (
 	"hash/crc32"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -19,6 +20,23 @@ func NewDataFile(fd *os.File, off int64) *DataFile {
 		TailOffset: off,
 		Mu:         &sync.Mutex{},
 	}
+}
+
+func OpenActiveFile(path string) (*DataFile, error) {
+	absp, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+	activeFilePath := filepath.Join(absp, ACTIVE_FILE_NAME)
+	fd, err := os.OpenFile(activeFilePath, os.O_RDWR|os.O_CREATE, PERM)
+	if err != nil {
+		return nil, err
+	}
+	fi, err := fd.Stat()
+	if err != nil {
+		return nil, err
+	}
+	return NewDataFile(fd, fi.Size()), nil
 }
 
 func (df *DataFile) WriteAt(e *Entry) (int, error) {
@@ -59,7 +77,7 @@ func (df *DataFile) ReadAt(off int64, len uint32) (*Entry, error) {
 }
 
 // entry's length = EntryHeader + entry's KeySize + entry's ValueSize
-// This function is used by starting.
+// This function is used when instance starting.
 func (df *DataFile) Read(off int64) (*Entry, error) {
 	df.Mu.Lock()
 	defer df.Mu.Unlock()

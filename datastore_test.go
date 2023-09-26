@@ -8,11 +8,11 @@ import (
 var (
 	PATH     = "./data"
 	TEST_SET = map[string]string{
-		"ling":  "jian",
-		"Cheng": "Du",
-		"Si":    "Chuan",
-		"good":  "bad",
-		"true":  "false",
+		"ling":  "jian123",
+		"Cheng": "Du123",
+		"Si":    "Chuan123",
+		"good":  "bad123",
+		"true":  "false123",
 	}
 )
 
@@ -54,7 +54,7 @@ func TestPut(t *testing.T) {
 	}
 	for k, v := range TEST_SET {
 		fmt.Println(k, v)
-		err = ds.put([]byte(k), []byte(v))
+		err = ds.Put([]byte(k), []byte(v))
 		if err != nil {
 			fmt.Println(err)
 			t.Fail()
@@ -70,7 +70,7 @@ func TestGET(t *testing.T) {
 		t.Fail()
 	}
 	for k, v := range TEST_SET {
-		tv, err := ds.get([]byte(k))
+		tv, err := ds.Get([]byte(k))
 		fmt.Println(k, string(tv))
 		if err != nil {
 			fmt.Println(err)

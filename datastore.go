@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 const (
@@ -18,23 +19,7 @@ type DataStore struct {
 	Keydir     map[string]*KeydirElement
 	ActiveFile *DataFile
 	FileList   []*os.File
-}
-
-func OpenActiveFile(path string) (*DataFile, error) {
-	absp, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
-	activeFilePath := filepath.Join(absp, ACTIVE_FILE_NAME)
-	fd, err := os.OpenFile(activeFilePath, os.O_RDWR|os.O_CREATE, PERM)
-	if err != nil {
-		return nil, err
-	}
-	fi, err := fd.Stat()
-	if err != nil {
-		return nil, err
-	}
-	return NewDataFile(fd, fi.Size()), nil
+	Mu         sync.Mutex
 }
 
 func Init(path string) (*DataStore, error) {
@@ -102,7 +87,9 @@ func (ds *DataStore) UpdateKeydirFromFile(df *DataFile) error {
 	return nil
 }
 
-func (ds *DataStore) get(key []byte) ([]byte, error) {
+func (ds *DataStore) Get(key []byte) ([]byte, error) {
+	ds.Mu.Lock()
+	defer ds.Mu.Unlock()
 	ke, ok := ds.Keydir[string(key)]
 	if !ok {
 		return nil, ErrKeyNotExist
@@ -114,7 +101,9 @@ func (ds *DataStore) get(key []byte) ([]byte, error) {
 	return e.Value, nil
 }
 
-func (ds *DataStore) put(key []byte, value []byte) error {
+func (ds *DataStore) Put(key []byte, value []byte) error {
+	ds.Mu.Lock()
+	defer ds.Mu.Unlock()
 	e := NewEntry(key, value)
 	// record off before write
 	off := ds.ActiveFile.TailOffset
@@ -127,8 +116,16 @@ func (ds *DataStore) put(key []byte, value []byte) error {
 }
 
 func (ds *DataStore) Close() {
+	ds.Mu.Lock()
+	defer ds.Mu.Unlock()
 	ds.ActiveFile.File.Close()
 	for _, fd := range ds.FileList {
 		fd.Close()
 	}
+}
+
+func (ds *DataStore) RotateActiveFile() error {
+	ds.Mu.Lock()
+	defer ds.Mu.Unlock()
+	return nil
 }
