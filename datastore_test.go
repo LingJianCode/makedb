@@ -5,22 +5,24 @@ import (
 	"testing"
 )
 
+var (
+	PATH     = "./data"
+	TEST_SET = map[string]string{
+		"ling":  "jian",
+		"Cheng": "Du",
+		"Si":    "Chuan",
+		"good":  "bad",
+		"true":  "false",
+	}
+)
+
 func TestInit(t *testing.T) {
-	path := "./data"
-	key1 := []byte("ling")
-	value1 := []byte("jian123")
-	key2 := []byte("cheng")
-	value2 := []byte("du")
-	ds, err := Init(path)
+	ds, err := Init(PATH)
+	defer ds.Close()
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
-	ds.put(key1, value1)
-	ds.put(key2, value2)
-	fmt.Println("---")
-	v, _ := ds.get(key2)
-	fmt.Println(string(v))
 	// _, err := os.Stat(path)
 	// if os.IsNotExist(err) {
 	// 	err = os.MkdirAll(path, os.ModePerm)
@@ -41,4 +43,41 @@ func TestInit(t *testing.T) {
 	// for _, file := range files {
 	// 	fmt.Println(filepath.Join(absp, file.Name()))
 	// }
+}
+
+func TestPut(t *testing.T) {
+	ds, err := Init(PATH)
+	defer ds.Close()
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	for k, v := range TEST_SET {
+		fmt.Println(k, v)
+		err = ds.put([]byte(k), []byte(v))
+		if err != nil {
+			fmt.Println(err)
+			t.Fail()
+		}
+	}
+}
+
+func TestGET(t *testing.T) {
+	ds, err := Init(PATH)
+	defer ds.Close()
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	for k, v := range TEST_SET {
+		tv, err := ds.get([]byte(k))
+		fmt.Println(k, string(tv))
+		if err != nil {
+			fmt.Println(err)
+			t.Fail()
+		}
+		if string(tv) != v {
+			t.Fail()
+		}
+	}
 }

@@ -13,10 +13,10 @@ type DataFile struct {
 	Mu *sync.Mutex
 }
 
-func NewDataFile(fd *os.File) *DataFile {
+func NewDataFile(fd *os.File, off int64) *DataFile {
 	return &DataFile{
 		File:       fd,
-		TailOffset: 0,
+		TailOffset: off,
 		Mu:         &sync.Mutex{},
 	}
 }
@@ -74,11 +74,11 @@ func (df *DataFile) Read(off int64) (*Entry, error) {
 	}
 	e.Key = make([]byte, e.KeySize)
 	e.Value = make([]byte, e.ValueSize)
-	n, err := df.File.ReadAt(e.Key, EntryHeader)
+	n, err := df.File.ReadAt(e.Key, off+EntryHeader)
 	if err != nil {
 		return nil, err
 	}
-	df.File.ReadAt(e.Value, int64(EntryHeader+n))
+	df.File.ReadAt(e.Value, off+EntryHeader+int64(n))
 	if err != nil {
 		return nil, err
 	}

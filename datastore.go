@@ -20,7 +20,7 @@ type DataStore struct {
 	FileList   []*os.File
 }
 
-func ActiveFile(path string) (*DataFile, error) {
+func OpenActiveFile(path string) (*DataFile, error) {
 	absp, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,11 @@ func ActiveFile(path string) (*DataFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewDataFile(fd), nil
+	fi, err := fd.Stat()
+	if err != nil {
+		return nil, err
+	}
+	return NewDataFile(fd, fi.Size()), nil
 }
 
 func Init(path string) (*DataStore, error) {
@@ -41,11 +45,12 @@ func Init(path string) (*DataStore, error) {
 			return nil, err
 		}
 	}
-	df, err := ActiveFile(path)
+	df, err := OpenActiveFile(path)
 	if err != nil {
 		return nil, err
 	}
 	ds := &DataStore{Keydir: map[string]*KeydirElement{}, ActiveFile: df, FileList: []*os.File{}}
+
 	ds.UpdateKeydirFromFile(ds.ActiveFile)
 
 	f, err := os.Open(path)
@@ -73,7 +78,7 @@ func Init(path string) (*DataStore, error) {
 			return nil, err
 		}
 		ds.FileList = append(ds.FileList, fd)
-		err = ds.UpdateKeydirFromFile(NewDataFile(fd))
+		err = ds.UpdateKeydirFromFile(NewDataFile(fd, 0))
 		if err != nil {
 			return nil, err
 		}
