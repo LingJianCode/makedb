@@ -1,4 +1,4 @@
-package makedb
+package datastore
 
 import (
 	"io"
@@ -22,7 +22,7 @@ type DataStore struct {
 	Mu         sync.Mutex
 }
 
-func Init(path string) (*DataStore, error) {
+func NewDataStore(path string) (*DataStore, error) {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		err = os.MkdirAll(path, os.ModePerm)

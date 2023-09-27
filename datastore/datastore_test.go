@@ -1,4 +1,4 @@
-package makedb
+package datastore
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ var (
 )
 
 func TestInit(t *testing.T) {
-	ds, err := Init(PATH)
+	ds, err := NewDataStore(PATH)
 	defer ds.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -46,7 +46,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	ds, err := Init(PATH)
+	ds, err := NewDataStore(PATH)
 	defer ds.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -63,7 +63,7 @@ func TestPut(t *testing.T) {
 }
 
 func TestGET(t *testing.T) {
-	ds, err := Init(PATH)
+	ds, err := NewDataStore(PATH)
 	defer ds.Close()
 	if err != nil {
 		fmt.Println(err)

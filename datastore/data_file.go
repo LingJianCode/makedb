@@ -1,4 +1,4 @@
-package makedb
+package datastore
 
 import (
 	"hash/crc32"

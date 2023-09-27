@@ -1,4 +1,4 @@
-package makedb
+package datastore
 
 type KeydirElement struct {
 	DataFile *DataFile
