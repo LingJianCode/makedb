@@ -2,3 +2,9 @@ server:
   http_port: 8080
   redis_port: 6379
   data_path: ./data
+zap:
+  log_level: level
+  director: ./logs
+  log_file: makedb.log
+  # console or json
+  log_format: console

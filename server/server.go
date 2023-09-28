@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"makedb/datastore"
 	"makedb/global"
 	"net/http"
@@ -37,9 +36,18 @@ func (s *Server) HomeHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) PutHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// fmt.Println(vars["key"], vars["value"])
-	err := s.Ds.Put([]byte(vars["key"]), []byte(vars["value"]))
+	key := vars["key"]
+	value := vars["value"]
+	err := s.Ds.Put([]byte(key), []byte(value))
+	if err != nil {
+		global.MAKEDB_LOG.Error(fmt.Sprint(err))
+		fmt.Fprintf(w, STATUS_FORMAT, FAIL)
+		return
+	}
+	global.MAKEDB_LOG.Info(fmt.Sprintf("put key: %s, value: %s", key, value))
 	w.WriteHeader(http.StatusOK)
 	if err != nil {
+		global.MAKEDB_LOG.Error(fmt.Sprint(err))
 		fmt.Fprintf(w, STATUS_FORMAT, FAIL)
 	} else {
 		fmt.Fprintf(w, STATUS_FORMAT, SUCCESS)
@@ -49,9 +57,17 @@ func (s *Server) PutHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) GetHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// fmt.Println(vars["key"])
-	value, err := s.Ds.Get([]byte(vars["key"]))
+	key := vars["key"]
+	value, err := s.Ds.Get([]byte(key))
+	if err != nil {
+		global.MAKEDB_LOG.Error(fmt.Sprintf("get key: %s - %s", key, err.Error()))
+		fmt.Fprintf(w, STATUS_FORMAT, FAIL)
+		return
+	}
+	global.MAKEDB_LOG.Info(fmt.Sprintf("get key: %s, value: %s", key, string(value)))
 	w.WriteHeader(http.StatusOK)
 	if err != nil {
+		global.MAKEDB_LOG.Error(fmt.Sprint(err))
 		fmt.Fprintf(w, STATUS_FORMAT, FAIL)
 	} else {
 		fmt.Fprintf(w, STATUS_DATA_FORMAT, SUCCESS, vars["key"], string(value))
@@ -65,6 +81,6 @@ func StartServer() {
 	r.HandleFunc("/{key}", s.GetHandler).Methods("GET")
 	r.HandleFunc("/{key}/{value}", s.PutHandler).Methods("PUT")
 	http.Handle("/", r)
-
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", global.MAKEDB_CONFIG.Server.HttpPort), nil))
+	global.MAKEDB_LOG.Info(fmt.Sprintf("server listen on %s", global.MAKEDB_CONFIG.Server.HttpPort))
+	global.MAKEDB_LOG.Error(fmt.Sprint(http.ListenAndServe(fmt.Sprintf(":%s", global.MAKEDB_CONFIG.Server.HttpPort), nil)))
 }

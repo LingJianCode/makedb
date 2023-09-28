@@ -8,5 +8,5 @@ import (
 
 var (
 	MAKEDB_LOG    *zap.Logger
-	MAKEDB_CONFIG *conf.Makedb
+	MAKEDB_CONFIG *conf.Config
 )

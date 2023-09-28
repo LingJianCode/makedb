@@ -1,8 +1,8 @@
 package conf
 
-type Makedb struct {
-	Server Server
-	// Zap    Zap
+type Config struct {
+	Server Server `mapstructure:"server"`
+	Zap    Zap    `mapstructure:"zap"`
 }
 
 type Server struct {
@@ -12,6 +12,8 @@ type Server struct {
 }
 
 type Zap struct {
-	Path     string `mapstructure:"path"`
-	FileName string `mapstructure:"file_name"`
+	Director  string `mapstructure:"director"`
+	LogFile   string `mapstructure:"log_file"`
+	LogLevel  string `mapstructure:"log_level"`
+	LogFormat string `mapstructure:"log_format"`
 }
