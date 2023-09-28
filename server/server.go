@@ -3,8 +3,8 @@ package server
 import (
 	"fmt"
 	"log"
-	"makedb/conf"
 	"makedb/datastore"
+	"makedb/global"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -58,13 +58,13 @@ func (s *Server) GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func StartServer(m *conf.Makedb) {
-	s := NewServer(m.DataPath)
+func StartServer() {
+	s := NewServer(global.MAKEDB_CONFIG.Server.DataPath)
 	r := mux.NewRouter()
 	r.HandleFunc("/", s.HomeHandler).Methods("GET")
 	r.HandleFunc("/{key}", s.GetHandler).Methods("GET")
 	r.HandleFunc("/{key}/{value}", s.PutHandler).Methods("PUT")
 	http.Handle("/", r)
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", m.HttpPort), nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", global.MAKEDB_CONFIG.Server.HttpPort), nil))
 }
