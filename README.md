@@ -9,9 +9,9 @@ makedb is a persisent k-v database that based on bitcask.bitcask's paper is [her
 ## Task
 - [x] Get/Put k/v with string.
 - [x] Support http protocol.
-- [ ] Support redis protocol.
-- [ ] Rotate active file.
 - [ ] Write ahead log.
+- [ ] Rotate active file.
+- [ ] Support redis protocol.
 - [ ] Get/Put k/v with list.
 
 ## usage
