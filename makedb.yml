@@ -1,0 +1,4 @@
+makedb:
+  http_port: 8080
+  redis_port: 6379
+  data_path: ./data
