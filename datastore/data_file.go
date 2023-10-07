@@ -50,6 +50,7 @@ func (df *DataFile) WriteAt(e *Entry) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	df.File.Sync()
 	df.TailOffset += int64(n)
 	return n, nil
 }
