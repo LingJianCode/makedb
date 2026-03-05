@@ -27,12 +27,12 @@ func NewEntry(key, value []byte) *Entry {
 	}
 }
 
-func (e *Entry) getSize() int64 {
+func (e *Entry) GetSize() int64 {
 	return int64(EntryHeader + e.KeySize + e.ValueSize)
 }
 
 func (e *Entry) Encode() ([]byte, error) {
-	buf := make([]byte, e.getSize())
+	buf := make([]byte, e.GetSize())
 	binary.LittleEndian.PutUint64(buf[4:12], e.Tstamp)
 	binary.LittleEndian.PutUint32(buf[12:16], e.KeySize)
 	binary.LittleEndian.PutUint32(buf[16:20], e.ValueSize)

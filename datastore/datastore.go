@@ -115,13 +115,18 @@ func (ds *DataStore) Put(key []byte, value []byte) error {
 	return nil
 }
 
-func (ds *DataStore) Close() {
+func (ds *DataStore) Close() error {
 	ds.Mu.Lock()
 	defer ds.Mu.Unlock()
-	ds.ActiveFile.File.Close()
-	for _, fd := range ds.FileList {
-		fd.Close()
+	if err := ds.ActiveFile.File.Close(); err != nil {
+		return err
 	}
+	for _, fd := range ds.FileList {
+		if err := fd.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (ds *DataStore) RotateActiveFile() error {

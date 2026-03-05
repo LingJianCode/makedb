@@ -3,7 +3,7 @@ server:
   redis_port: 6379
   data_path: ./data
 zap:
-  log_level: level
+  log_level: info
   director: ./logs
   log_file: makedb.log
   # console or json
