@@ -24,3 +24,4 @@ data
 *.db
 .vscode
 logs
+.codebuddy
