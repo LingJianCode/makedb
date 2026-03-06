@@ -19,7 +19,7 @@ type DataStore struct {
 	Keydir     map[string]*KeydirElement
 	ActiveFile *DataFile
 	FileList   []*os.File
-	Mu         sync.Mutex
+	Mu         sync.RWMutex
 }
 
 func NewDataStore(path string) (*DataStore, error) {
@@ -88,8 +88,8 @@ func (ds *DataStore) UpdateKeydirFromFile(df *DataFile) error {
 }
 
 func (ds *DataStore) Get(key []byte) ([]byte, error) {
-	ds.Mu.Lock()
-	defer ds.Mu.Unlock()
+	ds.Mu.RLock()
+	defer ds.Mu.RUnlock()
 	ke, ok := ds.Keydir[string(key)]
 	if !ok {
 		return nil, ErrKeyNotExist
